@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex, nofollow">
+<title>ИИ-ассистент</title>
+
+<!-- Google tag (gtag.js) — GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VNG605KE2R"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-VNG605KE2R');
+</script>
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+   m[i].l=1*new Date();
+   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+   k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+   (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+   ym(96171108, "init", {clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:false});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/96171108" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+<style>
+  :root{
+    --bg:#ffffff;
+    --text:#212124;
+    --muted:#a0a1a9;
+    --bubble-border:#edeef0;
+    --green:#0cc44d;
+    --red:#ef3124;
+    --user-bubble:#f2f3f5;
+    --bar-border:#f0f0f2;
+    --field-border:#e7e7e9;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; height:100%;}
+  body{
+    font-family:var(--font);
+    color:var(--text);
+    background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overscroll-behavior:none;
+  }
+  .app{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    width:100%;
+    max-width:480px;
+    margin:0 auto;
+    height:100dvh;
+    background:var(--bg);
+    overflow:hidden;
+  }
+
+  /* ---------- Header ---------- */
+  .header{
+    position:relative;
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding-top:calc(env(safe-area-inset-top) + 6px);
+    padding-bottom:10px;
+    background:var(--bg);
+  }
+  .header .back{
+    position:absolute;
+    left:8px;
+    bottom:6px;
+    width:40px;height:40px;
+    display:flex;align-items:center;justify-content:center;
+    border:0;background:transparent;cursor:pointer;
+    color:var(--text);
+  }
+  .header .center{ text-align:center; line-height:1.15; }
+  .header .title{ font-size:17px; font-weight:600; letter-spacing:-0.1px; }
+  .header .subtitle{
+    display:flex; align-items:center; justify-content:center; gap:3px;
+    margin-top:2px; font-size:13px; color:var(--muted);
+  }
+  .header .subtitle svg{ display:block; }
+
+  /* ---------- Messages ---------- */
+  .messages{
+    flex:1 1 auto;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:8px 0 12px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    min-height:0;
+  }
+  .messages-inner{ display:flex; flex-direction:column; gap:6px; }
+
+  .day{
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    margin:6px 0 10px;
+  }
+
+  .row{
+    display:flex;
+    align-items:flex-end;
+    gap:8px;
+    padding:0 12px;
+  }
+  .row.assistant{ justify-content:flex-start; }
+  .row.user{ justify-content:flex-end; }
+
+  .avatar-col{ flex:0 0 44px; width:44px; }
+  .avatar{
+    width:44px;height:44px;border-radius:50%;
+    background:#fbe8e7;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .avatar.hidden{ visibility:hidden; }
+
+  .col{ display:flex; flex-direction:column; gap:8px; max-width:78%; min-width:0; }
+  .sender{ color:var(--muted); font-size:15px; margin:2px 0 2px 4px; }
+
+  .bubble{
+    background:var(--bg);
+    border:1px solid var(--bubble-border);
+    border-radius:18px;
+    padding:13px 16px;
+    font-size:16px;
+    line-height:1.4;
+    color:var(--text);
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    max-width:100%;
+    animation:pop .18s ease-out;
+  }
+  .row.user .bubble{
+    background:var(--user-bubble);
+    border-color:var(--user-bubble);
+  }
+  @keyframes pop{ from{opacity:0; transform:translateY(6px) scale(.98);} to{opacity:1; transform:none;} }
+
+  /* typing indicator */
+  .typing{ display:flex; align-items:center; gap:5px; padding:16px; }
+  .typing span{
+    width:8px;height:8px;border-radius:50%;
+    background:#c3c4c9;
+    animation:blink 1.3s infinite ease-in-out;
+  }
+  .typing span:nth-child(2){ animation-delay:.18s; }
+  .typing span:nth-child(3){ animation-delay:.36s; }
+  @keyframes blink{ 0%,80%,100%{opacity:.35; transform:translateY(0);} 40%{opacity:1; transform:translateY(-3px);} }
+  /* подсказка «собираю ответ…» рядом с точками: не сжимается и не переносится */
+  .typing .hint{
+    /* сбрасываем стили точки (.typing span задаёт 8x8, фон и анимацию) */
+    width:auto; height:auto; border-radius:0; background:none; animation:none;
+    margin-left:8px; font-size:14px; color:var(--muted);
+    white-space:nowrap; flex:0 0 auto; align-self:center;
+    opacity:1; transition:opacity .18s ease;   /* мягкая смена подписи каждые 4 с */
+  }
+
+  /* suggestion chips */
+  .chips-row{ padding:2px 12px 0 64px; }
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; animation:pop .18s ease-out; }
+  .chip{
+    border:1px solid #dcdee1;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font);
+    font-size:15px;
+    line-height:1.2;
+    padding:11px 16px;
+    border-radius:20px;
+    cursor:pointer;
+    text-align:left;
+  }
+  .chip:active{ background:var(--user-bubble); }
+
+  /* ---------- Input bar ---------- */
+  .inputbar{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 12px calc(env(safe-area-inset-bottom) + 8px);
+    background:var(--bg);
+    border-top:1px solid var(--bar-border);
+  }
+  .field{
+    flex:1 1 auto;
+    display:flex;align-items:center;
+    background:var(--bg);
+    border:1px solid var(--field-border);
+    border-radius:22px;
+    padding:0 16px;
+    min-height:44px;
+  }
+  .field input{
+    width:100%;
+    border:0;outline:0;background:transparent;
+    font-family:var(--font);
+    font-size:16px;
+    color:var(--text);
+    padding:11px 0;
+  }
+  .field input::placeholder{ color:var(--muted); opacity:1; }
+  .send{
+    flex:0 0 auto;
+    width:44px;height:44px;border-radius:50%;
+    border:0; cursor:pointer;
+    background:var(--red);
+    display:flex;align-items:center;justify-content:center;
+    transform:scale(0);
+    transition:transform .14s ease-out;
+  }
+  .send.visible{ transform:scale(1); }
+  .send:active{ filter:brightness(.92); }
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <button class="back" id="backBtn" aria-label="Назад">
+        <svg width="12" height="20" viewBox="0 0 12 20" fill="none">
+          <path d="M10 2 L2 10 L10 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="center">
+        <div class="title">ИИ-ассистент</div>
+        <div class="subtitle">
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M13 2 L4 13 h6 l-1 9 9-13 h-6 l1-7 z" fill="#0cc44d"/>
+          </svg>
+          <span>На связи</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Messages -->
+    <main class="messages" id="messages">
+      <div class="messages-inner" id="thread"></div>
+    </main>
+
+    <!-- Input bar -->
+    <form class="inputbar" id="form" autocomplete="off">
+      <div class="field">
+        <input id="input" type="text" inputmode="text" placeholder="Сообщение" enterkeyhint="send" aria-label="Сообщение">
+      </div>
+      <button class="send" id="send" type="submit" aria-label="Отправить">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M4 11.5 L20 4 L12.5 20 L10.8 13.2 L4 11.5 Z" fill="#fff"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ====== КОНФИГ ЭКСПЕРИМЕНТА 8094 ======
+  // Строки ниже заменяет build.py — не убирайте маркеры BUILD:.
+  // hook: control | deep-dive | personalize | next-action | related-topic | choice | check-understanding | text-only
+  var CONFIG = {"exp": 8343, "num": 2, "hook": "personalize"}; // BUILD:CONFIG
+  var WORKER_URL = "https://functions.yandexcloud.net/d4e996tcg0cubvcc2oh0"; // BUILD:WORKER
+  var WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbx8aemvuVqg-fw3xGi2H9_-hm_JfkNoK9KTPZ2U9FjhTKnkCYIi6uA6t0N4LZ_rcnM/exec"; // BUILD:WEBHOOK
+  var BACKUP_URL = "https://script.google.com/macros/s/AKfycbx-bLBQZ1ZzzxrB3b5X-gJq1wUNNbnd0c7JmHxWQXFZpaqgVMYj6rOf6GhfUs8fEPs/exec"; // BUILD:BACKUP
+
+  var PRIMARY_TIMEOUT_MS = 30000;   // основной путь не обрываем рано — он отвечает на 3–10 с
+  var BACKUP_TIMEOUT_MS  = 40000;   // резерв: бывает холодный старт
+  var HEDGE_AFTER_MS     = 15000;   // замер: медиана 6 с, хвост до 16 с. Раньше хеджить = дублировать запрос зря
+
+  var EXP = CONFIG.exp;
+  var VAR = CONFIG.num;
+  var HOOK = CONFIG.hook;
+  var SHOW_FOLLOWUP = (HOOK !== 'control');
+  var SHOW_CHIPS = (HOOK !== 'control' && HOOK !== 'text-only');
+
+  // Стартовые чипсы — самые частые реальные вопросы из эксперимента 8093
+  var STARTER_CHIPS = [
+    "Как улучшить финансовое положение?",
+    "Куда уходят мои деньги?",
+    "Как отключить платные подписки?"
+  ];
+  var GREETING = "Привет! Это ИИ-ассистент Альфа-Банка. Помогу разобраться с личными финансами: расходы, бюджет, подписки, накопления. С чего начнём?";
+
+  // ====== аналитика: GA4 + Яндекс.Метрика (префикс номера эксперимента) ======
+  var YM_ID = 96171108;
+  // GA4 — корпоративный и общий: кастомные параметры и user_properties там не
+  // зарегистрировать, поэтому шлём ТОЛЬКО чистые события без своих полей (вариант уже
+  // зашит в имя события, а «один пользователь / одна сессия» GA4 считает сам).
+  // Связка cid/sid живёт в Яндекс.Метрике (params не требуют регистрации) и в
+  // Google-таблице, куда cid и sid пишутся с каждым сообщением.
+  var BOT = (function(){
+    try{
+      if(navigator.webdriver) return true;
+      var ua = navigator.userAgent || '';
+      return /headless|phantom|puppeteer|playwright|bot|crawler|spider|curl|wget|python|node-fetch/i.test(ua);
+    }catch(e){ return false; }
+  })();
+
+  function track(name, extra){
+    if(BOT) return;
+    try{ if(typeof window.gtag === 'function') window.gtag('event', name); }catch(e){}
+    var p = { cid: CID, sid: SID, variant: VAR };
+    if(extra) for(var k in extra) p[k] = extra[k];
+    try{ if(typeof window.ym === 'function') window.ym(YM_ID, 'reachGoal', name, p); }catch(e){}
+  }
+  function initAnalyticsIdentity(){
+    try{ if(typeof window.ym === 'function'){
+      window.ym(YM_ID, 'userParams', { alfa_cid: CID });
+      window.ym(YM_ID, 'params', { alfa_sid: SID, alfa_variant: EXP + '-' + VAR,
+                                   alfa_returning_8094: PREV8094.cid ? 1 : 0,
+                                   alfa_prev_variant: PREV8094.variant,
+                                   alfa_prev_turns: PREV8094.turns });
+    } }catch(e){}
+  }
+  function ev(base){ return EXP + '_' + base + '_var' + VAR; }
+
+  // ====== helpers ======
+  var thread   = document.getElementById('thread');
+  var messages = document.getElementById('messages');
+  var input    = document.getElementById('input');
+  var sendBtn  = document.getElementById('send');
+  var form     = document.getElementById('form');
+
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+  function scrollDown(){ messages.scrollTop = messages.scrollHeight; }
+  function el(tag, cls, html){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(html != null) e.innerHTML = html;
+    return e;
+  }
+
+  // ── Связка с 8094 ────────────────────────────────────────────────────────
+  // Тот же домен, что у 8094, — значит, его хранилище нам видно. Если человек открывал
+  // чат в августе, у него остался alfa8094_cid: берём его как CID и здесь, и в общей
+  // таблице его прошлый и нынешний диалоги лягут под одним идентификатором.
+  var PREV8094 = (function(){
+    var r = { cid: null, variant: '', turns: 0 };
+    try{
+      r.cid = localStorage.getItem('alfa8094_cid');
+      for(var v = 1; v <= 8; v++){
+        var s = JSON.parse(localStorage.getItem('alfa8094_session_var' + v) || 'null');
+        if(s && (s.turns || 0) >= r.turns){ r.variant = v; r.turns = s.turns || 0; }
+      }
+    }catch(e){}
+    return r;
+  })();
+
+  var CID = (function(){
+    try{
+      var k = 'alfa' + EXP + '_cid', v = PREV8094.cid || localStorage.getItem(k);
+      if(!v){ v = Math.random().toString(36).slice(2) + Date.now().toString(36); }
+      localStorage.setItem(k, v);
+      return v;
+    }catch(e){ return 'anon'; }
+  })();
+
+  // ====== сессия: диалог хранится 7 дней, пользователь видит свои сообщения ======
+  var SESSION_TTL = 7 * 24 * 60 * 60 * 1000;      // неделя
+  var SKEY = 'alfa' + EXP + '_session_var' + VAR;         // своя сессия на каждый вариант
+  function loadSession(){
+    try{
+      var s = JSON.parse(localStorage.getItem(SKEY) || 'null');
+      if(!s || !s.sid || !s.ts) return null;
+      if(Date.now() - s.ts > SESSION_TTL){ localStorage.removeItem(SKEY); return null; }
+      return s;
+    }catch(e){ return null; }
+  }
+  function saveSession(){
+    try{
+      localStorage.setItem(SKEY, JSON.stringify({
+        sid: SID, ts: Date.now(),          // ts обновляется — неделя от последней активности
+        msgs: msgs, hist: history, chips: lastChips, turns: userTurns
+      }));
+    }catch(e){}
+  }
+  var RESTORED = loadSession();
+  var SID = RESTORED ? RESTORED.sid
+          : 's' + Math.random().toString(36).slice(2,8) + Date.now().toString(36);
+
+  // ====== лог диалога в Google-таблицу (строка на каждое сообщение) ======
+  function logRow(role, text){
+    if(BOT) return;
+    try{
+      if(!WEBHOOK_URL || WEBHOOK_URL.indexOf('PASTE_') === 0){
+        console.log('[' + EXP + ']', 'var'+VAR, role+':', text.slice(0,80));
+        return;
+      }
+      fetch(WEBHOOK_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+        body: JSON.stringify({ variant: EXP + '-' + VAR, role: role, text: text, cid: CID, sid: SID }),
+        keepalive: true
+      }).catch(function(){});
+    }catch(e){}
+  }
+
+  // ====== рендер чата (группы ассистента, как в 8093) ======
+  var assistantRow = null, assistantCol = null, avatar = null, firstAssistantGroup = true;
+  function ensureAssistantRow(){
+    if(assistantRow) return;
+    assistantRow = el('div','row assistant');
+    var avCol = el('div','avatar-col');
+    avatar = el('div','avatar hidden',
+      '<svg width="26" height="26" viewBox="0 0 24 24">' +
+      '<defs><linearGradient id="spk'+Math.random().toString(36).slice(2,6)+'" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#fb554b"/><stop offset="1" stop-color="#de180b"/>' +
+      '</linearGradient></defs>' +
+      '<path d="M12 2 C12 7 17 12 22 12 C17 12 12 17 12 22 C12 17 7 12 2 12 C7 12 12 7 12 2 Z" fill="#ef3124"/>' +
+      '</svg>');
+    avCol.appendChild(avatar);
+    assistantCol = el('div','col');
+    if(firstAssistantGroup){
+      assistantCol.appendChild(el('div','sender','ИИ-ассистент'));
+      firstAssistantGroup = false;
+    }
+    assistantRow.appendChild(avCol);
+    assistantRow.appendChild(assistantCol);
+    thread.appendChild(assistantRow);
+  }
+  function closeAssistantGroup(){ assistantRow = null; assistantCol = null; avatar = null; }
+
+  var typingNode = null;
+  var slowTimer = null;
+  var hintTimer = null;
+  // Подписи при долгом ответе: сменяются каждые 4 с, на последней останавливаются.
+  // Порядок только вперёд — возврат к «собираю ответ» после «почти готово» читался бы
+  // как откат назад.
+  var HINTS = ['собираю ответ…', 'ещё пару секунд…', 'почти готово…'];
+  function showTyping(){
+    ensureAssistantRow();
+    if(typingNode) return;
+    typingNode = el('div','bubble typing','<span></span><span></span><span></span>');
+    assistantCol.appendChild(typingNode);
+    // Если ответ идёт долго — показываем, что процесс жив, а не завис.
+    slowTimer = setTimeout(function(){
+      if(!typingNode) return;
+      typingNode.innerHTML =
+        '<span></span><span></span><span></span>' +
+        '<span class="hint">' + HINTS[0] + '</span>';
+      var hint = typingNode.querySelector('.hint');
+      var i = 0;
+      hintTimer = setInterval(function(){
+        i++;
+        if(!typingNode || !hint || i >= HINTS.length){ clearInterval(hintTimer); hintTimer = null; return; }
+        hint.style.opacity = '0';
+        setTimeout(function(){ if(hint){ hint.textContent = HINTS[i]; hint.style.opacity = '1'; } }, 180);
+      }, 4000);
+    }, 6000);
+    scrollDown();
+  }
+  function hideTyping(){
+    if(slowTimer){ clearTimeout(slowTimer); slowTimer=null; }
+    if(hintTimer){ clearInterval(hintTimer); hintTimer=null; }
+    if(typingNode){ typingNode.remove(); typingNode = null; }
+  }
+  function addAssistantBubble(text){
+    ensureAssistantRow();
+    var b = el('div','bubble');
+    b.textContent = text;
+    assistantCol.appendChild(b);
+    scrollDown();
+    return b;
+  }
+  function revealAvatar(){ if(avatar) avatar.classList.remove('hidden'); }
+  function addUserBubble(text){
+    var row = el('div','row user');
+    var col = el('div','col');
+    var b = el('div','bubble');
+    b.textContent = text;
+    col.appendChild(b);
+    row.appendChild(col);
+    thread.appendChild(row);
+    closeAssistantGroup();
+    scrollDown();
+  }
+
+  // ====== чипсы ======
+  var chipsRow = null;
+  function showChips(labels, viaChip){
+    removeChips();
+    if(!labels || !labels.length) return;
+    chipsRow = el('div','chips-row');
+    var chips = el('div','chips');
+    labels.forEach(function(label){
+      if(!label) return;
+      var c = el('button','chip');
+      c.type = 'button';
+      c.textContent = label;
+      c.addEventListener('click', function(){ sendMessage(label, viaChip); });
+      chips.appendChild(c);
+    });
+    chipsRow.appendChild(chips);
+    thread.appendChild(chipsRow);
+    scrollDown();
+  }
+  function removeChips(){ if(chipsRow){ chipsRow.remove(); chipsRow = null; } }
+
+  // ====== диалог ======
+  var history = [];          // [{role, content}] для модели
+  var msgs = [];             // [{role, text}] — то, что видит пользователь (для восстановления)
+  var lastChips = [];        // активные чипсы на момент сохранения
+  var userTurns = 0;         // счётчик ходов пользователя
+  var busy = false;
+
+  // Восстановление сохранённого диалога: без анимации, сразу как было.
+  function restoreDialog(s){
+    history   = s.hist  || [];
+    msgs      = s.msgs  || [];
+    userTurns = s.turns || 0;
+    lastChips = s.chips || [];
+    thread.appendChild(el('div','day','Сегодня'));
+    msgs.forEach(function(m){
+      if(m.role === 'user') addUserBubble(m.text);
+      else { addAssistantBubble(m.text); revealAvatar(); }
+    });
+    if(lastChips.length) showChips(lastChips, 'chip');
+    scrollDown();
+  }
+
+  function fetchJSON(url, body, ms, ctype){
+    var ctl = (typeof AbortController === 'function') ? new AbortController() : null;
+    var killer = setTimeout(function(){ if(ctl) ctl.abort(); }, ms);
+    var opts = { method:'POST', headers:{ 'Content-Type': ctype }, body: body };
+    if(ctl) opts.signal = ctl.signal;
+    return fetch(url, opts).then(function(r){
+      clearTimeout(killer);
+      if(!r.ok) throw new Error('http ' + r.status);
+      return r.json();
+    }).catch(function(e){ clearTimeout(killer); throw e; });
+  }
+
+  // Основной путь — функция Яндекса: доступна из российских сетей без VPN и держит
+  // параллельную нагрузку. Резерв на Apps Script — на случай её недоступности
+  // (он тоже доступен из РФ, но медленный и сыплется при параллельных запросах).
+  // Если основной путь один раз не сработал — дальше в этой сессии сразу идём на резерв.
+  var primaryDead = false;
+  try{ primaryDead = sessionStorage.getItem('alfa' + EXP + '_primary_dead') === '1'; }catch(e){}
+  var backupReady = BACKUP_URL && BACKUP_URL.indexOf('PASTE_') !== 0;
+
+  // Основной путь (Cloudflare) быстрый, но в части сетей недоступен, а иногда думает 9–10 с.
+  // Поэтому не обрываем его рано, а через HEDGE_AFTER_MS параллельно запускаем резерв
+  // и берём ТОТ ОТВЕТ, КОТОРЫЙ ПРИДЁТ РАНЬШЕ. Если основной успел за 3 с — резерв
+  // не запускается вовсе (не тратим лишние запросы к модели).
+  function callWorker(){
+    if(!WORKER_URL || WORKER_URL.indexOf('PASTE_') === 0){
+      return Promise.resolve({
+        answer: "Это локальный режим без подключённой модели. Задеплойте Cloudflare Worker и впишите его URL в build.py.",
+        followup: "Показать, как это сделать?",
+        chips: ["Показать", "Не сейчас"]
+      });
+    }
+    var body = JSON.stringify({ hook: HOOK, messages: history });
+
+    // если основной уже показал себя нерабочим — сразу резерв
+    if(primaryDead && backupReady){
+      return fetchJSON(BACKUP_URL, body, BACKUP_TIMEOUT_MS, 'text/plain;charset=utf-8');
+    }
+    if(!backupReady){
+      return fetchJSON(WORKER_URL, body, PRIMARY_TIMEOUT_MS, 'application/json');
+    }
+
+    return new Promise(function(resolve, reject){
+      var settled = false, failures = 0, hedgeStarted = false, hedgeTimer = null;
+      function win(d){ if(!settled){ settled = true; clearTimeout(hedgeTimer); resolve(d); } }
+      function lose(e){
+        failures++;
+        if(!settled && failures >= 2) { settled = true; clearTimeout(hedgeTimer); reject(e); }
+      }
+      function startBackup(fromError){
+        if(hedgeStarted || settled) return;
+        hedgeStarted = true;
+        if(fromError){                       // основной недоступен в этой сети
+          primaryDead = true;
+          try{ sessionStorage.setItem('alfa' + EXP + '_primary_dead','1'); }catch(err){}
+          track(ev('fallback_proxy'));
+        }
+        fetchJSON(BACKUP_URL, body, BACKUP_TIMEOUT_MS, 'text/plain;charset=utf-8').then(win, lose);
+      }
+      fetchJSON(WORKER_URL, body, PRIMARY_TIMEOUT_MS, 'application/json')
+        .then(win, function(e){ startBackup(true); lose(e); });
+      hedgeTimer = setTimeout(function(){ startBackup(false); }, HEDGE_AFTER_MS);
+    });
+  }
+
+  async function sendMessage(text, via){   // via: 'starter' | 'chip' | 'typed'
+    text = (text || '').trim();
+    if(!text || busy || BOT) return;
+    busy = true;
+
+    userTurns++;
+    if(userTurns === 1){
+      track(ev('first_message'));
+    } else {
+      track(ev(via === 'chip' ? 'continue_chip' : 'continue_typed'));
+      if(userTurns === 3) track(ev('depth3'));
+    }
+
+    removeChips();
+    addUserBubble(text);
+    logRow('user', text);
+    history.push({ role:'user', content:text });
+    msgs.push({ role:'user', text:text });
+    lastChips = [];
+    saveSession();
+    input.value = '';
+    updateSendVisibility();
+
+    await sleep(400);
+    showTyping();
+
+    var res;
+    try{
+      res = await callWorker();
+    }catch(e){
+      hideTyping();
+      addAssistantBubble('Что-то долго думаю. Попробуйте задать вопрос ещё раз.');
+      revealAvatar();
+      track(ev('error'));
+      busy = false;
+      return;
+    }
+    hideTyping();
+
+    if(res.error || !res.answer){
+      addAssistantBubble('Что-то долго думаю. Попробуйте задать вопрос ещё раз.');
+      revealAvatar();
+      track(ev('error'));
+      busy = false;
+      return;
+    }
+
+    // ответ + крючок (по варианту)
+    var shown = res.answer;
+    if(SHOW_FOLLOWUP && res.followup){
+      shown = res.answer + '\n\n' + res.followup;
+    }
+    addAssistantBubble(shown);
+    revealAvatar();
+    logRow('assistant', shown);
+    msgs.push({ role:'assistant', text: shown });
+    // В историю модели кладём ассистента строго в JSON — иначе к 2-3 ходу модель
+    // «сползает» с формата (подтверждено замером). Пользователю показываем shown, а не это.
+    history.push({ role:'assistant', content: JSON.stringify({ answer: res.answer, followup: res.followup || '', chips: res.chips || [] }) });
+    track(ev('answer_shown'));
+
+    if(SHOW_CHIPS && res.chips && res.chips.length){
+      await sleep(300);
+      showChips(res.chips, 'chip');
+      lastChips = res.chips;
+    }
+    saveSession();
+    busy = false;
+  }
+
+  // ====== intro ======
+  async function playIntro(){
+    thread.appendChild(el('div','day','Сегодня'));
+    await sleep(600);
+    showTyping();
+    await sleep(1400);
+    hideTyping();
+    addAssistantBubble(GREETING);
+    revealAvatar();
+    logRow('assistant', GREETING);
+    history.push({ role:'assistant', content: JSON.stringify({ answer: GREETING, followup: '', chips: STARTER_CHIPS }) });
+    msgs.push({ role:'assistant', text: GREETING });
+    await sleep(400);
+    showChips(STARTER_CHIPS, 'starter');
+    lastChips = STARTER_CHIPS;
+    saveSession();
+    scrollDown();
+  }
+
+  // ====== ввод ======
+  function updateSendVisibility(){
+    if(input.value.trim().length > 0) sendBtn.classList.add('visible');
+    else sendBtn.classList.remove('visible');
+  }
+
+  input.addEventListener('input', updateSendVisibility);
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    sendMessage(input.value, 'typed');
+  });
+  document.getElementById('backBtn').addEventListener('click', function(e){ e.preventDefault(); });
+  input.addEventListener('focus', function(){ setTimeout(scrollDown, 250); });
+
+  initAnalyticsIdentity();
+  track(ev('page_view_landing'));
+  // Был в 8094: в ГА — голое событие, в Метрику — с параметрами прошлого визита.
+  if(PREV8094.cid) track(ev('returning_8094'), { prev_variant: PREV8094.variant, prev_turns: PREV8094.turns });
+  if(RESTORED && RESTORED.msgs && RESTORED.msgs.length){
+    restoreDialog(RESTORED);                 // возврат в течение недели — показываем прежний диалог
+    track(ev('session_resumed'));
+  } else {
+    playIntro();                             // новая сессия
+  }
+})();
+</script>
+</body>
+</html>
